@@ -1,0 +1,33 @@
+name: Rename genially.html to index.html
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Rename files
+        run: |
+          for dir in */ ; do
+            if [ -f "${dir}genially.html" ]; then
+              rm -f "${dir}index.html"
+              mv "${dir}genially.html" "${dir}index.html"
+              echo "Renamed genially.html → index.html in $dir"
+            fi
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Auto-rename genially.html to index.html" || echo "Nothing to commit"
+          git push
+
