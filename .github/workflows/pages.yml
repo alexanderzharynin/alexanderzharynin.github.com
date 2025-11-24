@@ -1,0 +1,53 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Rename genially.html to index.html
+        run: |
+          for dir in */ ; do
+            if [ -f "${dir}genially.html" ]; then
+              rm -f "${dir}index.html"
+              mv "${dir}genially.html" "${dir}index.html"
+              echo "Renamed genially.html → index.html in $dir"
+            fi
+          done
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Auto rename" || echo "Nothing to commit"
+          git push
+
+  deploy:
+    needs: rename
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./
+
+      - name: Deploy to Pages
+        uses: actions/deploy-pages@v2
+
